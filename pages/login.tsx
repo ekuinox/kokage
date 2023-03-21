@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const LoginPage = () => {
@@ -11,7 +12,7 @@ const LoginPage = () => {
   }, []);
   return (
     <>
-      <a href={url}>{url}</a>
+      <Link href={url}>{url}</Link>
     </>
   );
 };
