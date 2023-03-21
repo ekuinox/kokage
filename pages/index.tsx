@@ -16,6 +16,7 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <div className={styles.description}>
+          <a href="/login">Login</a>
           <p>
             Get started by editing&nbsp;
             <code className={styles.code}>pages/index.tsx</code>
