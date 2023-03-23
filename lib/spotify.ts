@@ -31,12 +31,37 @@ const getCurrentUsersProfileResponseType = z
     ...rest,
   }));
 
+const imageType = z.object({
+  width: z.number(),
+  height: z.number(),
+  url: z.string(),
+});
+
+const albumType = z.object({
+  external_urls: z.record(z.string(), z.string()),
+  href: z.string(),
+  id: z.string(),
+  images: z.array(imageType),
+  name: z.string(),
+  release_date: z.string(),
+
+});
+
+const artistType = z.object({
+  external_urls: z.record(z.string(), z.string()),
+  name: z.string(),
+  href: z.string(),
+  id: z.string(),
+});
+
 const trackType = z.object({
   id: z.string(),
   name: z.string(),
+  album: albumType,
+  artists: z.array(artistType),
 });
 
-const errorResponse = z.object({
+const errorResponseType = z.object({
   error: z.number(),
   message: z.string()
 });
@@ -52,9 +77,15 @@ const getCurrentlyPlayingTrackResponseType = z.union(
       isPlaying: is_playing,
       ...rest,
     })),
-    errorResponse
+    errorResponseType
   ]);
 
+const getUserTopTracksResponseType = z.union([
+  z.object({
+    items: z.array(trackType),
+  }),
+  errorResponseType,
+]);
 
 interface SpotifyOAuth2AppCredentials {
   clientId: string;
@@ -150,11 +181,11 @@ export class SpotifyClient {
   #request = async (
     method: string,
     path: string,
-    params: Record<string, string> = {}
+    params: Record<string, string | number> = {}
   ) => {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
-      query.set(key, value);
+      query.set(key, value.toString());
     }
     return fetch(`https://api.spotify.com/v1${path}?${query.toString()}`, {
       headers: this.#headers(),
@@ -162,7 +193,7 @@ export class SpotifyClient {
     });
   };
 
-  #get = async (path: string, params: Record<string, string> = {}) => {
+  #get = async (path: string, params: Record<string, string | number> = {}) => {
     return this.#request('GET', path, params);
   };
 
@@ -178,11 +209,30 @@ export class SpotifyClient {
     );
   };
 
-
   getCurrentlyPlayingTrack = async (): Promise<
     z.infer<typeof getCurrentlyPlayingTrackResponseType>
   > => {
     return this.#get('/me/player/currently-playing')
       .then(SpotifyClient.#asJson(getCurrentlyPlayingTrackResponseType));
   };
+
+  getTopTracks = async ({ limit, offset, timeRange }: {
+    limit?: number;
+    offset?: number;
+    timeRange?: 'long' | 'short' | 'medium';
+  } = {}) => {
+    const params: Record<string, string | number> = {};
+    if (timeRange != null) {
+      params['time_range'] = `${timeRange}_term`;
+    }
+    if (limit != null) {
+      params['limit'] = limit;
+    }
+    if (offset != null) {
+      params['offset'] = offset;
+    }
+
+    return this.#get('/me/top/tracks', params)
+      .then(SpotifyClient.#asJson(getUserTopTracksResponseType));
+  }
 }

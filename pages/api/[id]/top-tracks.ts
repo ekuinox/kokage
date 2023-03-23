@@ -1,3 +1,4 @@
+import * as z from 'zod';
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 import { SpotifyClient } from '@/lib/spotify';
 import { getUserById, getUserByIdPrivate, upsertUser } from '@/lib/supabase';
@@ -13,7 +14,11 @@ const handler: NextApiHandler = async (
     return;
   }
 
+  const timeRangeParsed = z.union([z.literal('short'), z.literal('medium'), z.literal('long')]).safeParse(req.query.timeRange);
+  const timeRange = timeRangeParsed.success ? timeRangeParsed.data : 'short';
+
   const { name } = await getUserById(id);
+
   const { refreshToken: refreshTokenOld } = await getUserByIdPrivate(id);
 
   // 毎回リフレッシュするの良くないと思う
@@ -33,17 +38,17 @@ const handler: NextApiHandler = async (
     refreshToken,
   });
 
-  const resp = await spotify.getCurrentlyPlayingTrack();
+  const resp = await spotify.getTopTracks({ timeRange, limit: 50 });
   if ('error' in resp) {
     res.status(500).json(resp.error);
     return;
   }
 
-  const { item: track } = resp;
+  const { items: tracks } = resp;
 
   res
     .status(200)
-    .json({ track });
+    .json({ tracks });
 };
 
 export default handler;
