@@ -38,7 +38,7 @@ const handler: NextApiHandler = async (
     refreshToken,
   });
 
-  const resp = await spotify.getTopTracks({ timeRange, limit: 50 });
+  const resp = await spotify.getTopTracks({ timeRange });
   if ('error' in resp) {
     res.status(500).json(resp.error);
     return;

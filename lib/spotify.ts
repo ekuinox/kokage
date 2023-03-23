@@ -59,6 +59,7 @@ const trackType = z.object({
   name: z.string(),
   album: albumType,
   artists: z.array(artistType),
+  external_urls: z.record(z.string(), z.string()),
 });
 
 const errorResponseType = z.object({
@@ -86,6 +87,8 @@ const getUserTopTracksResponseType = z.union([
   }),
   errorResponseType,
 ]);
+
+export type Track = z.infer<typeof trackType>;
 
 interface SpotifyOAuth2AppCredentials {
   clientId: string;
