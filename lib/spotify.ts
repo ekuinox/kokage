@@ -36,15 +36,25 @@ const trackType = z.object({
   name: z.string(),
 });
 
-const getCurrentlyPlayingTrackResponseType = z
-  .object({
-    item: trackType,
-    is_playing: z.boolean(),
-  })
-  .transform(({ is_playing, ...rest }) => ({
-    isPlaying: is_playing,
-    ...rest,
-  }));
+const errorResponse = z.object({
+  error: z.number(),
+  message: z.string()
+});
+
+// ここだけエラーとorしているのはどうなんだ
+const getCurrentlyPlayingTrackResponseType = z.union(
+  [z
+    .object({
+      item: trackType,
+      is_playing: z.boolean(),
+    })
+    .transform(({ is_playing, ...rest }) => ({
+      isPlaying: is_playing,
+      ...rest,
+    })),
+    errorResponse
+  ]);
+
 
 interface SpotifyOAuth2AppCredentials {
   clientId: string;
@@ -108,10 +118,10 @@ export class SpotifyClient {
 
   static #asJson =
     <T extends z.ZodTypeAny>(typeObject: T) =>
-    async (r: Response): Promise<z.infer<T>> => {
-      const response = await r.json();
-      return typeObject.parseAsync(response);
-    };
+      async (r: Response): Promise<z.infer<T>> => {
+        const response = await r.json();
+        return typeObject.parseAsync(response);
+      };
 
   static fromRefreshToken = async (
     refreshToken: string,
@@ -168,11 +178,11 @@ export class SpotifyClient {
     );
   };
 
+
   getCurrentlyPlayingTrack = async (): Promise<
     z.infer<typeof getCurrentlyPlayingTrackResponseType>
   > => {
-    return this.#get('/me/player/currently-playing').then(
-      SpotifyClient.#asJson(getCurrentlyPlayingTrackResponseType)
-    );
+    return this.#get('/me/player/currently-playing')
+      .then(SpotifyClient.#asJson(getCurrentlyPlayingTrackResponseType));
   };
 }

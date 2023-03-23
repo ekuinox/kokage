@@ -31,7 +31,7 @@ export default async function handler(
 
     const { displayName: name, id } = await spotify.getCurrentUsersProfile();
 
-    upsertUser({
+    await upsertUser({
       id,
       name,
       accessToken: spotify.getAccessToken(),

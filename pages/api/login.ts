@@ -11,7 +11,13 @@ const handler: NextApiHandler = async (
   res: NextApiResponse<Data>
 ) => {
   const state = createState(64);
-  const scopes = ['user-top-read', 'user-read-private', 'user-read-email'];
+  const scopes = [
+    'user-top-read',
+    'user-read-private',
+    'user-read-email',
+    'user-read-currently-playing',
+    'user-read-recently-played',
+  ];
 
   const url = SpotifyClient.generateAuthorizeUri(state, scopes, {
     clientId: process.env.SPOTIFY_CLIENT_ID,
