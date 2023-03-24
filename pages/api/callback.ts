@@ -31,11 +31,23 @@ export default async function handler(
 
     const { display_name: name, id } = await spotify.getCurrentUsersProfile();
 
+    const scopes = spotify.getScopes();
+    const expiresAt = spotify.getExpiresAt();
+
+    if (scopes == null || expiresAt == null) {
+      res.status(500).send('scopes or expiresAt are null');
+      return;
+    }
+
     await upsertUser({
       id,
       name,
-      accessToken: spotify.getAccessToken(),
-      refreshToken: spotify.getRefreshToken(),
+      tokens: {
+        accessToken: spotify.getAccessToken(),
+        refreshToken: spotify.getRefreshToken(),
+        expiresAt,
+        scopes,
+      },
     });
 
     res.redirect(`/user/${id}`);

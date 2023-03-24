@@ -2,23 +2,24 @@
 
 import * as z from 'zod';
 
-const tokenResponseType = z
-  .object({
-    access_token: z.string(),
-    refresh_token: z.string(),
-  });
+const tokenResponseType = z.object({
+  access_token: z.string(),
+  refresh_token: z.string(),
+  expires_in: z.number(),
+  scope: z.string(),
+});
 
-const refreshTokenResponseType = z
-  .object({
-    access_token: z.string(),
-  });
+const refreshTokenResponseType = z.object({
+  access_token: z.string(),
+  expires_in: z.number(),
+  scope: z.string(),
+});
 
-const getCurrentUsersProfileResponseType = z
-  .object({
-    country: z.string(),
-    display_name: z.string(),
-    id: z.string(),
-  });
+const getCurrentUsersProfileResponseType = z.object({
+  country: z.string(),
+  display_name: z.string(),
+  id: z.string(),
+});
 
 const imageType = z.object({
   width: z.number(),
@@ -33,7 +34,6 @@ const albumType = z.object({
   images: z.array(imageType),
   name: z.string(),
   release_date: z.string(),
-
 });
 
 const artistType = z.object({
@@ -53,18 +53,17 @@ const trackType = z.object({
 
 const errorResponseType = z.object({
   error: z.number(),
-  message: z.string()
+  message: z.string(),
 });
 
 // ここだけエラーとorしているのはどうなんだ
-const getCurrentlyPlayingTrackResponseType = z.union(
-  [
-    z.object({
-      item: trackType,
-      is_playing: z.boolean(),
-    }),
-    errorResponseType
-  ]);
+const getCurrentlyPlayingTrackResponseType = z.union([
+  z.object({
+    item: trackType,
+    is_playing: z.boolean(),
+  }),
+  errorResponseType,
+]);
 
 const getUserTopTracksResponseType = z.union([
   z.object({
@@ -84,14 +83,28 @@ interface SpotifyOAuth2AppCredentials {
 export class SpotifyClient {
   #accessToken: string;
   #refreshToken: string;
-  constructor(accessToken: string, refreshToken: string) {
+  #expiresAt?: Date;
+  #scopes?: string[];
+
+  constructor(
+    accessToken: string,
+    refreshToken: string,
+    expiresAt?: Date,
+    scopes?: string[]
+  ) {
     this.#accessToken = accessToken;
     this.#refreshToken = refreshToken;
+    this.#expiresAt = expiresAt;
+    this.#scopes = scopes;
   }
 
   getAccessToken = (): string => this.#accessToken;
 
   getRefreshToken = (): string => this.#refreshToken;
+
+  getExpiresAt = (): Date | null => this.#expiresAt ?? null;
+
+  getScopes = (): string[] | null => this.#scopes ?? null;
 
   static generateAuthorizeUri = (
     state: string,
@@ -129,18 +142,21 @@ export class SpotifyClient {
       }
     );
     const json = await response.json();
-    const { access_token, refresh_token } = await tokenResponseType.parseAsync(
-      json
-    );
-    return new SpotifyClient(access_token, refresh_token);
+    const { access_token, refresh_token, expires_in, scope } =
+      await tokenResponseType.parseAsync(json);
+
+    const expiresAt = new Date(Date.now() + expires_in * 1000);
+    const scopes = scope.split(' ');
+
+    return new SpotifyClient(access_token, refresh_token, expiresAt, scopes);
   };
 
   static #asJson =
     <T extends z.ZodTypeAny>(typeObject: T) =>
-      async (r: Response): Promise<z.infer<T>> => {
-        const response = await r.json();
-        return typeObject.parseAsync(response);
-      };
+    async (r: Response): Promise<z.infer<T>> => {
+      const response = await r.json();
+      return typeObject.parseAsync(response);
+    };
 
   static fromRefreshToken = async (
     refreshToken: string,
@@ -149,7 +165,11 @@ export class SpotifyClient {
     const params = new URLSearchParams();
     params.append('grant_type', 'refresh_token');
     params.append('refresh_token', refreshToken);
-    const { access_token: accessToken } = await fetch(
+    const {
+      access_token: accessToken,
+      expires_in,
+      scope,
+    } = await fetch(
       `https://accounts.spotify.com/api/token?${params.toString()}`,
       {
         method: 'POST',
@@ -159,7 +179,9 @@ export class SpotifyClient {
         },
       }
     ).then(SpotifyClient.#asJson(refreshTokenResponseType));
-    return new SpotifyClient(accessToken, refreshToken);
+    const expiresAt = new Date(Date.now() + expires_in * 1000);
+    const scopes = scope.split(' ');
+    return new SpotifyClient(accessToken, refreshToken, expiresAt, scopes);
   };
 
   #headers = (): { Authorization: string } => ({
@@ -200,11 +222,16 @@ export class SpotifyClient {
   getCurrentlyPlayingTrack = async (): Promise<
     z.infer<typeof getCurrentlyPlayingTrackResponseType>
   > => {
-    return this.#get('/me/player/currently-playing')
-      .then(SpotifyClient.#asJson(getCurrentlyPlayingTrackResponseType));
+    return this.#get('/me/player/currently-playing').then(
+      SpotifyClient.#asJson(getCurrentlyPlayingTrackResponseType)
+    );
   };
 
-  getTopTracks = async ({ limit, offset, timeRange }: {
+  getTopTracks = async ({
+    limit,
+    offset,
+    timeRange,
+  }: {
     limit?: number;
     offset?: number;
     timeRange?: 'long' | 'short' | 'medium';
@@ -220,7 +247,8 @@ export class SpotifyClient {
       params['offset'] = offset;
     }
 
-    return this.#get('/me/top/tracks', params)
-      .then(SpotifyClient.#asJson(getUserTopTracksResponseType));
-  }
+    return this.#get('/me/top/tracks', params).then(
+      SpotifyClient.#asJson(getUserTopTracksResponseType)
+    );
+  };
 }

@@ -23,6 +23,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "dayjs": "^1.11.7",
     "eslint-config-prettier": "^8.8.0"
   }
 }
