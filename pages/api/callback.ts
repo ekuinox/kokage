@@ -38,7 +38,7 @@ export default async function handler(
       refreshToken: spotify.getRefreshToken(),
     });
 
-    res.redirect(`/?name=${name}&id=${id}`);
+    res.redirect(`/user/${id}`);
   } catch (e) {
     console.error({ e });
     res.status(500).send('');
