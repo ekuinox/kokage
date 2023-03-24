@@ -25,7 +25,6 @@ const handler: NextApiHandler = async (
   const spotify = await SpotifyClient.fromRefreshToken(refreshTokenOld, {
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.SPOTIFY_REDIRECT_URL,
   });
 
   const accessToken = spotify.getAccessToken();

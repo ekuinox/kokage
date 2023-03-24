@@ -6,30 +6,19 @@ const tokenResponseType = z
   .object({
     access_token: z.string(),
     refresh_token: z.string(),
-  })
-  .transform(({ access_token, refresh_token }) => ({
-    accessToken: access_token,
-    refreshToken: refresh_token,
-  }));
+  });
 
 const refreshTokenResponseType = z
   .object({
     access_token: z.string(),
-  })
-  .transform(({ access_token }) => ({
-    accessToken: access_token,
-  }));
+  });
 
 const getCurrentUsersProfileResponseType = z
   .object({
     country: z.string(),
     display_name: z.string(),
     id: z.string(),
-  })
-  .transform(({ display_name, ...rest }) => ({
-    displayName: display_name,
-    ...rest,
-  }));
+  });
 
 const imageType = z.object({
   width: z.number(),
@@ -69,15 +58,11 @@ const errorResponseType = z.object({
 
 // ここだけエラーとorしているのはどうなんだ
 const getCurrentlyPlayingTrackResponseType = z.union(
-  [z
-    .object({
+  [
+    z.object({
       item: trackType,
       is_playing: z.boolean(),
-    })
-    .transform(({ is_playing, ...rest }) => ({
-      isPlaying: is_playing,
-      ...rest,
-    })),
+    }),
     errorResponseType
   ]);
 
@@ -144,10 +129,10 @@ export class SpotifyClient {
       }
     );
     const json = await response.json();
-    const { accessToken, refreshToken } = await tokenResponseType.parseAsync(
+    const { access_token, refresh_token } = await tokenResponseType.parseAsync(
       json
     );
-    return new SpotifyClient(accessToken, refreshToken);
+    return new SpotifyClient(access_token, refresh_token);
   };
 
   static #asJson =
@@ -159,12 +144,12 @@ export class SpotifyClient {
 
   static fromRefreshToken = async (
     refreshToken: string,
-    { clientId, clientSecret, redirectUri }: SpotifyOAuth2AppCredentials
+    { clientId, clientSecret }: Omit<SpotifyOAuth2AppCredentials, 'redirectUri'>
   ): Promise<SpotifyClient> => {
     const params = new URLSearchParams();
     params.append('grant_type', 'refresh_token');
     params.append('refresh_token', refreshToken);
-    const { accessToken } = await fetch(
+    const { access_token: accessToken } = await fetch(
       `https://accounts.spotify.com/api/token?${params.toString()}`,
       {
         method: 'POST',

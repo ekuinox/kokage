@@ -29,7 +29,7 @@ export default async function handler(
       redirectUri: process.env.SPOTIFY_REDIRECT_URL,
     });
 
-    const { displayName: name, id } = await spotify.getCurrentUsersProfile();
+    const { display_name: name, id } = await spotify.getCurrentUsersProfile();
 
     await upsertUser({
       id,
