@@ -1,6 +1,6 @@
 import { SpotifyClient } from '@/lib/spotify';
 import { upsertUser } from '@/lib/supabase';
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import SpotifyProvider from 'next-auth/providers/spotify';
 
@@ -64,9 +64,13 @@ const scopes = [
   'user-read-email',
   'user-read-currently-playing',
   'user-read-recently-played',
+  'playlist-read-private',
+  'playlist-read-collaborative',
+  'playlist-modify-private',
+  'playlist-modify-public',
 ];
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   // 1つまたは複数の認証プロバイダを設定する
   providers: [
     SpotifyProvider({
@@ -178,4 +182,6 @@ export default NextAuth({
       return session;
     },
   },
-});
+};
+
+export default NextAuth(authOptions);

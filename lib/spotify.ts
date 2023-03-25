@@ -34,6 +34,7 @@ const albumType = z.object({
   images: z.array(imageType),
   name: z.string(),
   release_date: z.string(),
+  uri: z.string(),
 });
 
 const artistType = z.object({
@@ -41,6 +42,7 @@ const artistType = z.object({
   name: z.string(),
   href: z.string(),
   id: z.string(),
+  uri: z.string(),
 });
 
 const trackType = z.object({
@@ -49,6 +51,7 @@ const trackType = z.object({
   album: albumType,
   artists: z.array(artistType),
   external_urls: z.record(z.string(), z.string()),
+  uri: z.string(),
 });
 
 const errorResponseType = z.object({
@@ -73,6 +76,22 @@ const getUserTopTracksResponseType = z.union([
 ]);
 
 export type Track = z.infer<typeof trackType>;
+
+const createPlaylistResponse = z.union([
+  z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().nullable(),
+  }),
+  errorResponseType,
+]);
+
+const updatePlaylistItemsResponse = z.union([
+  z.object({
+    snapshot_id: z.string(),
+  }),
+  errorResponseType,
+]);
 
 interface SpotifyOAuth2AppCredentials {
   clientId: string;
@@ -195,7 +214,8 @@ export class SpotifyClient {
   #request = async (
     method: string,
     path: string,
-    params: Record<string, string | number> = {}
+    params: Record<string, string | number> = {},
+    body?: string
   ) => {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
@@ -204,6 +224,7 @@ export class SpotifyClient {
     return fetch(`https://api.spotify.com/v1${path}?${query.toString()}`, {
       headers: this.#headers(),
       method,
+      body,
     });
   };
 
@@ -211,8 +232,20 @@ export class SpotifyClient {
     return this.#request('GET', path, params);
   };
 
-  #post = async (path: string, params: Record<string, string> = {}) => {
-    return this.#request('POST', path, params);
+  #post = async (
+    path: string,
+    params: Record<string, string> = {},
+    body?: string
+  ) => {
+    return this.#request('POST', path, params, body);
+  };
+
+  #put = async (
+    path: string,
+    params: Record<string, string> = {},
+    body?: string
+  ) => {
+    return this.#request('PUT', path, params, body);
   };
 
   getCurrentUsersProfile = async (): Promise<
@@ -253,6 +286,35 @@ export class SpotifyClient {
 
     return this.#get('/me/top/tracks', params).then(
       SpotifyClient.#asJson(getUserTopTracksResponseType)
+    );
+  };
+
+  createPlaylist = async (
+    id: string,
+    {
+      name,
+      public: public_,
+      description,
+    }: { name: string; public?: boolean; description?: string }
+  ) => {
+    const params: Record<string, string> = { name };
+    if (public_) {
+      params['public'] = `${public_}`;
+    }
+    if (description) {
+      params['description'] = description;
+    }
+
+    return this.#post(
+      `/users/${id}/playlists`,
+      {},
+      JSON.stringify(params)
+    ).then(SpotifyClient.#asJson(createPlaylistResponse));
+  };
+
+  updatePlaylistItems = async (playlistId: string, trackUris: string[]) => {
+    this.#put(`/playlists/${playlistId}/tracks`, { uris: trackUris.join(',') }).then(
+      SpotifyClient.#asJson(updatePlaylistItemsResponse)
     );
   };
 }

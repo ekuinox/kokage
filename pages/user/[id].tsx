@@ -1,8 +1,14 @@
 import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type TopTracksData } from '../api/[id]/top-tracks';
+import { Track } from '@/lib/spotify';
+import { useSession } from 'next-auth/react';
+import {
+  CreatePlaylistResponse,
+  type CreatePlaylistRequest,
+} from '../api/create-playlist';
 
 const getTopTracks = async (id: string): Promise<TopTracksData> => {
   const resp = await fetch(`/api/${id}/top-tracks`);
@@ -10,6 +16,41 @@ const getTopTracks = async (id: string): Promise<TopTracksData> => {
     throw new Error(await resp.text());
   }
   return resp.json();
+};
+
+const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
+  const session = useSession();
+  const [playlistName, setPlaylistName] = useState<string | null>(null);
+
+  const create = useCallback(() => {
+    if (tracks.length === 0) {
+      return;
+    }
+    const request: CreatePlaylistRequest = {
+      trackUris: tracks.map((track) => track.uri),
+    };
+    fetch('/api/create-playlist', {
+      method: 'POST',
+      body: JSON.stringify(request),
+      headers: { 'content-type': 'application/json' },
+    }).then(async (resp) => {
+      if (resp.ok) {
+        const data: CreatePlaylistResponse = await resp.json();
+        setPlaylistName(data.playlist.name);
+      }
+    });
+  }, [tracks]);
+
+  if (session.data == null) {
+    return <>Not logined</>;
+  }
+
+  return (
+    <>
+      <button onClick={create}>まとめてプレイリストに登録する</button>
+      {playlistName && <p>{playlistName} created.</p>}
+    </>
+  );
 };
 
 export default function Home() {
@@ -36,6 +77,7 @@ export default function Home() {
       </Head>
       <main>
         <h1>{user?.name}</h1>
+        <PlaylistCreator tracks={topTracks} />
         <ul>
           {topTracks.map((track) => (
             <li key={track.id}>
