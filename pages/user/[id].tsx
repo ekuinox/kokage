@@ -2,24 +2,29 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
-import { Track } from '@/lib/spotify';
+import { type TopTracksData } from '../api/[id]/top-tracks';
+
+const getTopTracks = async (id: string): Promise<TopTracksData> => {
+  const resp = await fetch(`/api/${id}/top-tracks`);
+  if (!resp.ok) {
+    throw new Error(await resp.text());
+  }
+  return resp.json();
+};
 
 export default function Home() {
   const router = useRouter();
-  const [topTracks, setTopTracks] = useState<Track[]>([]);
-  const [id, setId] = useState<string>('');
+  const [resp, setResp] = useState<TopTracksData | null>(null);
+
   useEffect(() => {
     const { id } = router.query;
-    if (typeof id !== 'string') {
-      return;
+    if (typeof id === 'string') {
+      getTopTracks(id).then(setResp);
     }
-    setId(id);
-    fetch(`/api/${id}/top-tracks`).then(async (r) => {
-      if (r.status === 200) {
-        setTopTracks((await r.json()).tracks);
-      }
-    });
   }, [router.query]);
+
+  const topTracks = useMemo(() => resp?.topTracks ?? [], [resp]);
+  const user = useMemo(() => resp?.user ?? null, [resp]);
 
   return (
     <>
@@ -30,7 +35,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <h1>{id}</h1>
+        <h1>{user?.name}</h1>
         <ul>
           {topTracks.map((track) => (
             <li key={track.id}>

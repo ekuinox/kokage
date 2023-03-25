@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 import dayjs from 'dayjs';
-import { SpotifyClient } from '@/lib/spotify';
+import { SpotifyClient, Track } from '@/lib/spotify';
 import { getUserByIdPrivate, upsertUser } from '@/lib/supabase';
 
 const getClient = async (
@@ -56,9 +56,17 @@ const getClient = async (
   return [name, spotify];
 };
 
+export type TopTracksData = {
+  topTracks: Track[];
+  user: {
+    name: string;
+    id: string;
+  };
+};
+
 const handler: NextApiHandler = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<TopTracksData | string>
 ) => {
   const { id } = req.query;
 
@@ -73,19 +81,19 @@ const handler: NextApiHandler = async (
   const timeRange = timeRangeParsed.success ? timeRangeParsed.data : 'short';
 
   try {
-    const [, client] = await getClient(id);
+    const [name, client] = await getClient(id);
 
     const resp = await client.getTopTracks({ timeRange });
     if ('error' in resp) {
-      res.status(500).json(resp.error);
+      res.status(500).json(resp.message);
       return;
     }
 
-    const { items: tracks } = resp;
+    const { items: topTracks } = resp;
 
-    res.status(200).json({ tracks });
+    res.status(200).json({ topTracks, user: { name, id } });
   } catch (e: unknown) {
-    res.status(500).json({ error: e });
+    res.status(500).json(`${e}`);
   }
 };
 
