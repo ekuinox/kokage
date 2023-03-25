@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 
 export default function Home() {
-  const router = useRouter();
-  const user = useMemo((): { id?: string; name?: string } => {
-    return router.query;
-  }, [router.query]);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    console.log({ session });
+  }, [session]);
 
   return (
     <>
@@ -18,11 +19,26 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        {(user.id && user.name && (
-          <p>
-            {user.name} (id: {user.id})
-          </p>
-        )) || <Link href="/login">Login</Link>}
+        {status === 'loading' && <h1>Loading...</h1>}
+        {status === 'unauthenticated' && (
+          <>
+            <h1>Hello Guest!</h1>
+            <Link href="/api/auth/signin">Sign in</Link>
+          </>
+        )}
+        {session && (
+          <>
+            <h1>Hello {session.user?.name}!</h1>
+            <ul>
+              <li>
+                <Link href={`/user/${session.user?.id}`}>Top tracks</Link>
+              </li>
+              <li>
+                <Link href="/api/auth/signout">Sign out</Link>
+              </li>
+            </ul>
+          </>
+        )}
       </main>
     </>
   );

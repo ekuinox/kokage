@@ -154,6 +154,10 @@ export class SpotifyClient {
   static #asJson =
     <T extends z.ZodTypeAny>(typeObject: T) =>
     async (r: Response): Promise<z.infer<T>> => {
+      if (!r.ok) {
+        console.error({ error: r.statusText, text: await r.text() });
+        throw new Error(r.statusText);
+      }
       const response = await r.json();
       return typeObject.parseAsync(response);
     };

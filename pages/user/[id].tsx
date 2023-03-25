@@ -36,11 +36,13 @@ export default function Home() {
             <li key={track.id}>
               <img src={track.album.images[0].url} style={{ width: '10rem' }} />
               <a href={track.external_urls['spotify']}>
-                {track.artists.map((artist) => artist.name).join(', ')} - {track.name}
+                {track.artists.map((artist) => artist.name).join(', ')} -{' '}
+                {track.name}
               </a>
             </li>
           ))}
         </ul>
+        <Link href="/">/</Link>
       </main>
     </>
   );

@@ -2,7 +2,7 @@ import * as z from 'zod';
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 import dayjs from 'dayjs';
 import { SpotifyClient } from '@/lib/spotify';
-import { getUserById, getUserByIdPrivate, upsertUser } from '@/lib/supabase';
+import { getUserByIdPrivate, upsertUser } from '@/lib/supabase';
 
 const getClient = async (
   id: string
@@ -73,7 +73,7 @@ const handler: NextApiHandler = async (
   const timeRange = timeRangeParsed.success ? timeRangeParsed.data : 'short';
 
   try {
-    const [name, client] = await getClient(id);
+    const [, client] = await getClient(id);
 
     const resp = await client.getTopTracks({ timeRange });
     if ('error' in resp) {
