@@ -77,6 +77,7 @@ export default function Home() {
       </Head>
       <main>
         <h1>{user?.name}</h1>
+        {user?.image && <img src={user?.image} />}
         <PlaylistCreator tracks={topTracks} />
         <ul>
           {topTracks.map((track) => (

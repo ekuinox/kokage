@@ -15,10 +15,16 @@ const refreshTokenResponseType = z.object({
   scope: z.string(),
 });
 
-const getCurrentUsersProfileResponseType = z.object({
-  country: z.string(),
+const getUserProfileResponseType = z.object({
   display_name: z.string(),
   id: z.string(),
+  images: z.array(
+    z.object({
+      url: z.string(),
+      height: z.number().nullable(),
+      width: z.number().nullable(),
+    })
+  ),
 });
 
 const imageType = z.object({
@@ -248,11 +254,19 @@ export class SpotifyClient {
     return this.#request('PUT', path, params, body);
   };
 
-  getCurrentUsersProfile = async (): Promise<
-    z.infer<typeof getCurrentUsersProfileResponseType>
+  getUserProfile = async (
+    id: string
+  ): Promise<z.infer<typeof getUserProfileResponseType>> => {
+    return this.#get(`/users/${id}`).then(
+      SpotifyClient.#asJson(getUserProfileResponseType)
+    );
+  };
+
+  getCurrentUserProfile = async (): Promise<
+    z.infer<typeof getUserProfileResponseType>
   > => {
     return this.#get('/me').then(
-      SpotifyClient.#asJson(getCurrentUsersProfileResponseType)
+      SpotifyClient.#asJson(getUserProfileResponseType)
     );
   };
 
@@ -313,8 +327,8 @@ export class SpotifyClient {
   };
 
   updatePlaylistItems = async (playlistId: string, trackUris: string[]) => {
-    this.#put(`/playlists/${playlistId}/tracks`, { uris: trackUris.join(',') }).then(
-      SpotifyClient.#asJson(updatePlaylistItemsResponse)
-    );
+    this.#put(`/playlists/${playlistId}/tracks`, {
+      uris: trackUris.join(','),
+    }).then(SpotifyClient.#asJson(updatePlaylistItemsResponse));
   };
 }
