@@ -12,6 +12,16 @@ export type TopTracksData = {
   };
 };
 
+const topTrackQueryParameterType = z.object({
+  timeRange: z
+    .union([z.literal('short'), z.literal('medium'), z.literal('long')])
+    .default('short'),
+  limit: z.number().default(5),
+  offset: z.number().default(0),
+});
+
+export type TopTrackQueryParameter = z.infer<typeof topTrackQueryParameterType>;
+
 const handler: NextApiHandler = async (
   req: NextApiRequest,
   res: NextApiResponse<TopTracksData | string>
@@ -23,17 +33,18 @@ const handler: NextApiHandler = async (
     return;
   }
 
-  const timeRangeParsed = z
-    .union([z.literal('short'), z.literal('medium'), z.literal('long')])
-    .safeParse(req.query.timeRange);
-  const timeRange = timeRangeParsed.success ? timeRangeParsed.data : 'short';
+  const params = topTrackQueryParameterType.safeParse(req.query);
+  if (!params.success) {
+    res.status(400).send('');
+    return;
+  }
 
   try {
     const [name, client] = await getClient(id);
 
     const profile = await client.getUserProfile(id);
 
-    const tracksResp = await client.getTopTracks({ timeRange });
+    const tracksResp = await client.getTopTracks(params.data);
     if ('error' in tracksResp) {
       res.status(500).json(tracksResp.message);
       return;
