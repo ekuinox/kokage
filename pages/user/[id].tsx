@@ -1,14 +1,27 @@
-import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type TopTracksData } from '../api/[id]/top-tracks';
 import { Track } from '@/lib/spotify';
+import { Header } from '@/components/Header';
 import { useSession } from 'next-auth/react';
 import {
   CreatePlaylistResponse,
   type CreatePlaylistRequest,
 } from '../api/create-playlist';
+import {
+  ActionIcon,
+  Avatar,
+  Container,
+  Divider,
+  Group,
+  rem,
+  Stack,
+  Title,
+  Tooltip,
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconDeviceFloppy } from '@tabler/icons-react';
 
 const getTopTracks = async (id: string): Promise<TopTracksData> => {
   const resp = await fetch(`/api/${id}/top-tracks`);
@@ -20,7 +33,6 @@ const getTopTracks = async (id: string): Promise<TopTracksData> => {
 
 const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
   const session = useSession();
-  const [playlistName, setPlaylistName] = useState<string | null>(null);
 
   const create = useCallback(() => {
     if (tracks.length === 0) {
@@ -36,20 +48,25 @@ const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
     }).then(async (resp) => {
       if (resp.ok) {
         const data: CreatePlaylistResponse = await resp.json();
-        setPlaylistName(data.playlist.name);
+        notifications.show({
+          title: 'プレイリストを作成しました!',
+          message: `${data.playlist.name}という名前で追加しました`,
+        });
       }
     });
   }, [tracks]);
 
-  if (session.data == null) {
-    return <>Not logined</>;
-  }
-
   return (
-    <>
-      <button onClick={create}>まとめてプレイリストに登録する</button>
-      {playlistName && <p>{playlistName} created.</p>}
-    </>
+    <Tooltip label="プレイリストを作成する">
+      <ActionIcon
+        onClick={create}
+        disabled={session === null}
+        variant="filled"
+        color="teal"
+      >
+        <IconDeviceFloppy />
+      </ActionIcon>
+    </Tooltip>
   );
 };
 
@@ -76,21 +93,32 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <h1>{user?.name}</h1>
-        {user?.image && <img src={user?.image} />}
-        <PlaylistCreator tracks={topTracks} />
-        <ul>
-          {topTracks.map((track) => (
-            <li key={track.id}>
-              <img src={track.album.images[0].url} style={{ width: '10rem' }} />
-              <a href={track.external_urls['spotify']}>
-                {track.artists.map((artist) => artist.name).join(', ')} -{' '}
-                {track.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <Link href="/">/</Link>
+        <Header />
+        <Container my="sm">
+          <Stack>
+            <Group position="apart" mx={rem(10)}>
+              <Group>
+                <Avatar src={user?.image} />
+                <Title fz="md">{user?.name}</Title>
+              </Group>
+              <PlaylistCreator tracks={topTracks} />
+            </Group>
+            <Divider />
+            {topTracks.map((track) => (
+              <iframe
+                key={track.id}
+                style={{ borderRadius: '12px' }}
+                src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator`}
+                width="100%"
+                height="152"
+                frameBorder="0"
+                allowFullScreen
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+              ></iframe>
+            ))}
+          </Stack>
+        </Container>
       </main>
     </>
   );

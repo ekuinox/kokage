@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
+import { Header } from '@/components/Header';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -19,26 +20,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        {status === 'loading' && <h1>Loading...</h1>}
-        {status === 'unauthenticated' && (
-          <>
-            <h1>Hello Guest!</h1>
-            <Link href="/api/auth/signin">Sign in</Link>
-          </>
-        )}
-        {session && (
-          <>
-            <h1>Hello {session.user?.name}!</h1>
-            <ul>
-              <li>
-                <Link href={`/user/${session.user?.id}`}>Top tracks</Link>
-              </li>
-              <li>
-                <Link href="/api/auth/signout">Sign out</Link>
-              </li>
-            </ul>
-          </>
-        )}
+        <Header />
+        工事中！！！
       </main>
     </>
   );
