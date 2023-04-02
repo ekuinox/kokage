@@ -1,17 +1,9 @@
 import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Track } from '@/lib/spotify';
-import { Header } from '@/components/Header';
+import { useCallback, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import {
-  CreatePlaylistResponse,
-  type CreatePlaylistRequest,
-} from '../api/create-playlist';
 import {
   ActionIcon,
   Avatar,
-  Center,
   Container,
   Divider,
   Group,
@@ -23,8 +15,16 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconDeviceFloppy } from '@tabler/icons-react';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { Header } from '@/components/Header';
+import { getClient } from '@/lib';
+import { Track } from '@/lib/spotify';
+import {
+  CreatePlaylistResponse,
+  type CreatePlaylistRequest,
+} from '../api/create-playlist';
 
-interface Data {
+interface UserPageProps {
   topTracks: {
     long: Track[];
     short: Track[];
@@ -37,42 +37,46 @@ interface Data {
   };
 }
 
-const getData = async (id: string): Promise<Data> => {
-  const requestUrls = [
-    `/api/${id}`,
-    `/api/${id}/top-tracks?timeRange=short`,
-    `/api/${id}/top-tracks?timeRange=medium`,
-    `/api/${id}/top-tracks?timeRange=long`,
-  ];
+export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
+  context
+) => {
+  const id = context.params?.id;
 
-  const responses = await Promise.allSettled(
-    requestUrls.map((url) =>
-      fetch(url).then(async (r) => {
-        if (!r.ok) {
-          return Promise.reject(await r.text());
+  if (typeof id !== 'string') {
+    throw new Error(`Error id not found`);
+  }
+
+  const [, client] = await getClient(id);
+  const profile = await client.getUserProfile(id);
+  const profileImage = profile.images.sort(
+    (a, b) => b.width ?? 0 - (a.width ?? 0)
+  )[0].url;
+
+  const timeRanges = ['short', 'medium', 'long'] as const;
+  const [short, medium, long] = await Promise.all(
+    timeRanges.map((timeRange) =>
+      client.getTopTracks({ limit: 5, offset: 0, timeRange }).then((r) => {
+        if ('error' in r) {
+          throw new Error(`Error with ${timeRange}`);
         }
-        return r.json();
+        return r.items;
       })
     )
   );
 
-  const [user, short, medium, long] = responses;
-  if (
-    user.status === 'rejected' ||
-    short.status === 'rejected' ||
-    medium.status === 'rejected' ||
-    long.status === 'rejected'
-  ) {
-    throw new Error('uwaaa');
-  }
-
   return {
-    topTracks: {
-      short: short.value.topTracks,
-      medium: medium.value.topTracks,
-      long: long.value.topTracks,
+    props: {
+      topTracks: {
+        short,
+        medium,
+        long,
+      },
+      user: {
+        id,
+        name: profile.display_name,
+        image: profileImage,
+      },
     },
-    user: user.value,
   };
 };
 
@@ -115,30 +119,11 @@ const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
   );
 };
 
-export default function Home() {
-  const router = useRouter();
-  const [resp, setResp] = useState<Data | null>(null);
-
-  useEffect(() => {
-    const { id } = router.query;
-    if (typeof id === 'string') {
-      getData(id).then(setResp);
-    }
-  }, [router.query]);
-
-  useEffect(() => {
-    console.log({ resp });
-  }, [resp]);
-
-  const [term, setTerm] = useState<keyof Data['topTracks']>('short');
-
-  const topTracks = useMemo(() => {
-    if (resp?.topTracks == null) {
-      return [];
-    }
-    return resp.topTracks[term];
-  }, [resp, term]);
-  const user = useMemo(() => resp?.user ?? null, [resp]);
+export default function UserPage({
+  user,
+  topTracks,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [term, setTerm] = useState<keyof typeof topTracks>('short');
 
   return (
     <>
@@ -154,8 +139,8 @@ export default function Home() {
           <Stack>
             <Group position="apart" mx={rem(10)}>
               <Group>
-                <Avatar src={user?.image} />
-                <Title fz="md">{user?.name}</Title>
+                <Avatar src={user.image} />
+                <Title fz="md">{user.name}</Title>
               </Group>
               <SegmentedControl
                 data={[
@@ -166,10 +151,10 @@ export default function Home() {
                 value={term}
                 onChange={(value) => setTerm(value as typeof term)}
               />
-              <PlaylistCreator tracks={topTracks} />
+              <PlaylistCreator tracks={topTracks[term]} />
             </Group>
             <Divider />
-            {topTracks.map((track) => (
+            {topTracks[term].map((track) => (
               <iframe
                 key={track.id}
                 src={`https://open.spotify.com/embed/track/${track.id}`}
