@@ -23,12 +23,47 @@ import {
 import { notifications } from '@mantine/notifications';
 import { IconDeviceFloppy } from '@tabler/icons-react';
 
-const getTopTracks = async (id: string): Promise<TopTracksData> => {
-  const resp = await fetch(`/api/${id}/top-tracks`);
-  if (!resp.ok) {
-    throw new Error(await resp.text());
+interface Data {
+  topTracks: {
+    long: Track[];
+    short: Track[];
+    medium: Track[];
+  };
+  user: {
+    name: string;
+    id: string;
+    image: string;
+  };
+}
+
+const getData = async (id: string): Promise<Data> => {
+  const requestUrls = [
+    `/api/${id}`,
+    `/api/${id}/top-tracks?timeRange=short`,
+    `/api/${id}/top-tracks?timeRange=medium`,
+    `/api/${id}/top-tracks?timeRange=long`,
+  ];
+
+  const responses = await Promise.allSettled(requestUrls.map((url) => fetch(url).then(async (r) => {
+    if (!r.ok) {
+      return Promise.reject(await r.text());
+    }
+    return r.json();
+  })));
+
+  const [user, short, medium, long] = responses;
+  if (user.status === 'rejected' || short.status === 'rejected' || medium.status === 'rejected' || long.status === 'rejected') {
+    throw new Error('uwaaa');
   }
-  return resp.json();
+
+  return {
+    topTracks: {
+      short: short.value.topTracks,
+      medium: medium.value.topTracks,
+      long: long.value.topTracks,
+    },
+    user: user.value,
+  }
 };
 
 const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
@@ -72,16 +107,20 @@ const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
 
 export default function Home() {
   const router = useRouter();
-  const [resp, setResp] = useState<TopTracksData | null>(null);
+  const [resp, setResp] = useState<Data | null>(null);
 
   useEffect(() => {
     const { id } = router.query;
     if (typeof id === 'string') {
-      getTopTracks(id).then(setResp);
+      getData(id).then(setResp);
     }
   }, [router.query]);
 
-  const topTracks = useMemo(() => resp?.topTracks ?? [], [resp]);
+  useEffect(() => {
+    console.log({ resp });
+  }, [resp]);
+
+  const topTracks = useMemo(() => resp?.topTracks ?? { short: [], medium: [], long: [] }, [resp]);
   const user = useMemo(() => resp?.user ?? null, [resp]);
 
   return (
@@ -101,10 +140,10 @@ export default function Home() {
                 <Avatar src={user?.image} />
                 <Title fz="md">{user?.name}</Title>
               </Group>
-              <PlaylistCreator tracks={topTracks} />
+              <PlaylistCreator tracks={topTracks.short} />
             </Group>
             <Divider />
-            {topTracks.map((track) => (
+            {topTracks.short.map((track) => (
               <iframe
                 key={track.id}
                 style={{ borderRadius: '12px' }}
