@@ -11,9 +11,11 @@ SPOTIFY_CLIENT_SECRET=
 SPOTIFY_CLIENT_ID=
 SUPABASE_ANON_KEY=
 SUPABASE_URL=
+SUPABASE_USERS_TABLE=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXTAUTH_URL=
 NEXTAUTH_SECRET=
+NEXT_PUBLIC_ORIGIN=
 ```
 
 - `SPOTIFY_CLIENT_*` ... [Dashboard](https://developer.spotify.com/dashboard)に行けば発行できる
@@ -22,6 +24,7 @@ NEXTAUTH_SECRET=
   + id, name, tokens, created_at, updated_atのカラムがある。
 - `NEXT_AUTH_SECRET` ... `openssl rand -base64 32` でもしたものを指定する
 - `NEXT_PUBLIC_ORIGIN` ... デプロイ先のホスト名を指定する
+
 
 pnpmを使っているので、`pnpm install`でパッケージをインストールする。
 
