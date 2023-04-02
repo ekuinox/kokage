@@ -28,18 +28,9 @@ import {
 import dayjs from 'dayjs';
 import { upperFirst } from '@mantine/hooks';
 import Link from 'next/link';
+import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
 
-interface User {
-  name: string;
-  id: string;
-  image: string;
-  url: string;
-}
-type TimeRange = 'short' | 'medium' | 'long';
-interface UserPageProps {
-  topTracks: Record<TimeRange, Track[]>;
-  user: User;
-}
+type UserPageProps = UserTopTracksProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   context
@@ -94,72 +85,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   };
 };
 
-const PlaylistCreator = ({
-  user,
-  tracks,
-  timeRange,
-}: {
-  user: Omit<User, 'image'>;
-  tracks: Track[];
-  timeRange: TimeRange;
-}) => {
-  const session = useSession();
-
-  const create = useCallback(() => {
-    if (tracks.length === 0) {
-      return;
-    }
-    const date = dayjs().format('YYYY-MM-DD');
-
-    const request: CreatePlaylistRequest = {
-      trackUris: tracks.map((track) => track.uri),
-      name: `top-tracks-${user.name}-${timeRange}-${date}`,
-      desc: `${user.name}'s Top Tracks of ${upperFirst(
-        timeRange
-      )} Time Range at ${date}`,
-    };
-    fetch('/api/create-playlist', {
-      method: 'POST',
-      body: JSON.stringify(request),
-      headers: { 'content-type': 'application/json' },
-    }).then(async (resp) => {
-      if (resp.ok) {
-        const data: CreatePlaylistResponse = await resp.json();
-        notifications.show({
-          title: 'プレイリストを作成しました!',
-          message: (
-            <>
-              <Anchor component={Link} target="_blank" href={data.playlist.url}>
-                {data.playlist.name}
-              </Anchor>
-              <Text>という名前で追加しました</Text>
-            </>
-          ),
-        });
-      }
-    });
-  }, [tracks]);
-
-  return (
-    <Tooltip label="プレイリストを作成する">
-      <ActionIcon
-        onClick={create}
-        disabled={session === null}
-        variant="filled"
-        color="teal"
-      >
-        <IconDeviceFloppy />
-      </ActionIcon>
-    </Tooltip>
-  );
-};
-
 export default function UserPage({
   user,
   topTracks,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const [timeRange, setTimeRange] = useState<TimeRange>('short');
-
   return (
     <>
       <Head>
@@ -171,45 +100,7 @@ export default function UserPage({
       <main>
         <Header />
         <Container my="sm">
-          <Stack>
-            <Group position="apart" mx={rem(10)}>
-              <Group>
-                <Avatar
-                  src={user.image}
-                  component={Link}
-                  target="_blank"
-                  href={user.url}
-                />
-                <Title fz="md">{user.name}</Title>
-              </Group>
-              <SegmentedControl
-                data={[
-                  { label: 'Short', value: 'short' },
-                  { label: 'Medium', value: 'medium' },
-                  { label: 'Long', value: 'long' },
-                ]}
-                value={timeRange}
-                onChange={(value) => setTimeRange(value as typeof timeRange)}
-              />
-              <PlaylistCreator
-                tracks={topTracks[timeRange]}
-                timeRange={timeRange}
-                user={user}
-              />
-            </Group>
-            <Divider />
-            {topTracks[timeRange].map((track) => (
-              <iframe
-                key={track.id}
-                src={`https://open.spotify.com/embed/track/${track.id}`}
-                height="80"
-                frameBorder="0"
-                allowFullScreen
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-              ></iframe>
-            ))}
-          </Stack>
+          <UserTopTracks user={user} topTracks={topTracks} />
         </Container>
       </main>
     </>
