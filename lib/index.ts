@@ -65,9 +65,8 @@ export const getServerSideUserTopTracksProps = async (
   }
 
   const profile = await client.getUserProfile(id);
-  const profileImage = profile.images.sort(
-    (a, b) => b.width ?? 0 - (a.width ?? 0)
-  )[0].url;
+  const profileImage =
+    profile.images.sort((a, b) => b.width ?? 0 - (a.width ?? 0))[0]?.url ?? '';
   const profileUrl = profile.external_urls['spotify'];
 
   const timeRanges = ['short', 'medium', 'long'] as const;
