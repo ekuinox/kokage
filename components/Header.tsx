@@ -54,6 +54,11 @@ const useStyles = createStyles((theme) => ({
     backgroundColor:
       theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.white,
   },
+  source: {
+    '&:hover': {
+      transform: 'scaleX(-1)',
+    },
+  },
 }));
 
 export function Header() {
@@ -89,6 +94,7 @@ export function Header() {
               <ActionIcon
                 component={Link}
                 target="_blank"
+                className={classes.source}
                 href="https://github.com/ekuinox/kokage"
               >
                 <IconBrandGithub />
