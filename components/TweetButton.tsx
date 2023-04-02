@@ -16,7 +16,7 @@ const createComposeUrl = (id: string) => {
 export const TweetButton = ({ id }: TweetButtonProps) => {
   return (
     <Tooltip label="シェア!">
-      <ActionIcon component={Link} href={createComposeUrl(id)}>
+      <ActionIcon component={Link} href={createComposeUrl(id)} target="_blank">
         <IconBrandTwitterFilled />
       </ActionIcon>
     </Tooltip>
