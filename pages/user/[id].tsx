@@ -46,10 +46,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   const id = context.params?.id;
 
   if (typeof id !== 'string') {
-    throw new Error(`Error id not found`);
+    return {
+      notFound: true,
+    };
   }
 
-  const [, client] = await getClient(id);
+  const [, client] = await getClient(id).catch(() => [null, null]);
+  if (client == null) {
+    return {
+      notFound: true,
+    };
+  }
+
   const profile = await client.getUserProfile(id);
   const profileImage = profile.images.sort(
     (a, b) => b.width ?? 0 - (a.width ?? 0)
