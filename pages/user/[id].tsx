@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { type TopTracksData } from '../api/[id]/top-tracks';
 import { Track } from '@/lib/spotify';
 import { Header } from '@/components/Header';
 import { useSession } from 'next-auth/react';
@@ -12,10 +11,12 @@ import {
 import {
   ActionIcon,
   Avatar,
+  Center,
   Container,
   Divider,
   Group,
   rem,
+  SegmentedControl,
   Stack,
   Title,
   Tooltip,
@@ -44,15 +45,24 @@ const getData = async (id: string): Promise<Data> => {
     `/api/${id}/top-tracks?timeRange=long`,
   ];
 
-  const responses = await Promise.allSettled(requestUrls.map((url) => fetch(url).then(async (r) => {
-    if (!r.ok) {
-      return Promise.reject(await r.text());
-    }
-    return r.json();
-  })));
+  const responses = await Promise.allSettled(
+    requestUrls.map((url) =>
+      fetch(url).then(async (r) => {
+        if (!r.ok) {
+          return Promise.reject(await r.text());
+        }
+        return r.json();
+      })
+    )
+  );
 
   const [user, short, medium, long] = responses;
-  if (user.status === 'rejected' || short.status === 'rejected' || medium.status === 'rejected' || long.status === 'rejected') {
+  if (
+    user.status === 'rejected' ||
+    short.status === 'rejected' ||
+    medium.status === 'rejected' ||
+    long.status === 'rejected'
+  ) {
     throw new Error('uwaaa');
   }
 
@@ -63,7 +73,7 @@ const getData = async (id: string): Promise<Data> => {
       long: long.value.topTracks,
     },
     user: user.value,
-  }
+  };
 };
 
 const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
@@ -120,7 +130,14 @@ export default function Home() {
     console.log({ resp });
   }, [resp]);
 
-  const topTracks = useMemo(() => resp?.topTracks ?? { short: [], medium: [], long: [] }, [resp]);
+  const [term, setTerm] = useState<keyof Data['topTracks']>('short');
+
+  const topTracks = useMemo(() => {
+    if (resp?.topTracks == null) {
+      return [];
+    }
+    return resp.topTracks[term];
+  }, [resp, term]);
   const user = useMemo(() => resp?.user ?? null, [resp]);
 
   return (
@@ -140,16 +157,23 @@ export default function Home() {
                 <Avatar src={user?.image} />
                 <Title fz="md">{user?.name}</Title>
               </Group>
-              <PlaylistCreator tracks={topTracks.short} />
+              <SegmentedControl
+                data={[
+                  { label: 'Short', value: 'short' },
+                  { label: 'Medium', value: 'medium' },
+                  { label: 'Long', value: 'long' },
+                ]}
+                value={term}
+                onChange={(value) => setTerm(value as typeof term)}
+              />
+              <PlaylistCreator tracks={topTracks} />
             </Group>
             <Divider />
-            {topTracks.short.map((track) => (
+            {topTracks.map((track) => (
               <iframe
                 key={track.id}
-                style={{ borderRadius: '12px' }}
-                src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator`}
-                width="100%"
-                height="152"
+                src={`https://open.spotify.com/embed/track/${track.id}`}
+                height="80"
                 frameBorder="0"
                 allowFullScreen
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
