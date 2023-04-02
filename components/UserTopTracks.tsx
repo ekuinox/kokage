@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { IframedTracks } from './IframedTracks';
 import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
+import { TweetButton } from './TweetButton';
 
 export interface UserTopTracksProps {
   user: User;
@@ -42,11 +43,14 @@ export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
           value={timeRange}
           onChange={(value) => setTimeRange(value as typeof timeRange)}
         />
-        <PlaylistCreateButton
-          tracks={topTracks[timeRange]}
-          timeRange={timeRange}
-          user={user}
-        />
+        <Group>
+          <TweetButton id={user.id} />
+          <PlaylistCreateButton
+            tracks={topTracks[timeRange]}
+            timeRange={timeRange}
+            user={user}
+          />
+        </Group>
       </Group>
       <Divider />
       <IframedTracks tracks={topTracks[timeRange]} />
