@@ -88,6 +88,7 @@ const createPlaylistResponse = z.union([
     id: z.string(),
     name: z.string(),
     description: z.string().nullable(),
+    external_urls: z.record(z.string()),
   }),
   errorResponseType,
 ]);

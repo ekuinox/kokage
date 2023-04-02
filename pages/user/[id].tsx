@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   ActionIcon,
+  Anchor,
   Avatar,
   Container,
   Divider,
@@ -10,6 +11,7 @@ import {
   rem,
   SegmentedControl,
   Stack,
+  Text,
   Title,
   Tooltip,
 } from '@mantine/core';
@@ -23,18 +25,19 @@ import {
   CreatePlaylistResponse,
   type CreatePlaylistRequest,
 } from '../api/create-playlist';
+import dayjs from 'dayjs';
+import { upperFirst } from '@mantine/hooks';
+import Link from 'next/link';
 
+interface User {
+  name: string;
+  id: string;
+  image: string;
+}
+type TimeRange = 'short' | 'medium' | 'long';
 interface UserPageProps {
-  topTracks: {
-    long: Track[];
-    short: Track[];
-    medium: Track[];
-  };
-  user: {
-    name: string;
-    id: string;
-    image: string;
-  };
+  topTracks: Record<TimeRange, Track[]>;
+  user: User;
 }
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
@@ -80,15 +83,29 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   };
 };
 
-const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
+const PlaylistCreator = ({
+  user,
+  tracks,
+  timeRange,
+}: {
+  user: Omit<User, 'image'>;
+  tracks: Track[];
+  timeRange: TimeRange;
+}) => {
   const session = useSession();
 
   const create = useCallback(() => {
     if (tracks.length === 0) {
       return;
     }
+    const date = dayjs().format('YYYY-MM-DD');
+
     const request: CreatePlaylistRequest = {
       trackUris: tracks.map((track) => track.uri),
+      name: `top-tracks-${user.name}-${timeRange}-${date}`,
+      desc: `${user.name}'s Top Tracks of ${upperFirst(
+        timeRange
+      )} Time Range at ${date}`,
     };
     fetch('/api/create-playlist', {
       method: 'POST',
@@ -99,7 +116,14 @@ const PlaylistCreator = ({ tracks }: { tracks: Track[] }) => {
         const data: CreatePlaylistResponse = await resp.json();
         notifications.show({
           title: 'プレイリストを作成しました!',
-          message: `${data.playlist.name}という名前で追加しました`,
+          message: (
+            <>
+              <Anchor component={Link} target="_blank" href={data.playlist.url}>
+                {data.playlist.name}
+              </Anchor>
+              <Text>という名前で追加しました</Text>
+            </>
+          ),
         });
       }
     });
@@ -123,7 +147,7 @@ export default function UserPage({
   user,
   topTracks,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const [term, setTerm] = useState<keyof typeof topTracks>('short');
+  const [timeRange, setTimeRange] = useState<TimeRange>('short');
 
   return (
     <>
@@ -148,13 +172,17 @@ export default function UserPage({
                   { label: 'Medium', value: 'medium' },
                   { label: 'Long', value: 'long' },
                 ]}
-                value={term}
-                onChange={(value) => setTerm(value as typeof term)}
+                value={timeRange}
+                onChange={(value) => setTimeRange(value as typeof timeRange)}
               />
-              <PlaylistCreator tracks={topTracks[term]} />
+              <PlaylistCreator
+                tracks={topTracks[timeRange]}
+                timeRange={timeRange}
+                user={user}
+              />
             </Group>
             <Divider />
-            {topTracks[term].map((track) => (
+            {topTracks[timeRange].map((track) => (
               <iframe
                 key={track.id}
                 src={`https://open.spotify.com/embed/track/${track.id}`}

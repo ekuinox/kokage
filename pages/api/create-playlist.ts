@@ -3,9 +3,10 @@ import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 import { getServerSession, Session } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import { getClient } from '@/lib';
-import dayjs from 'dayjs';
 
 const CreatePlaylistRequestType = z.object({
+  name: z.string(),
+  desc: z.string(),
   trackUris: z.array(z.string()),
 });
 
@@ -14,6 +15,8 @@ export interface CreatePlaylistResponse {
   playlist: {
     id: string;
     name: string;
+    desc: string | null;
+    url: string;
   };
 }
 
@@ -42,19 +45,24 @@ const handler: NextApiHandler = async (
 
   const [, client] = await getClient(id);
 
-  const date = dayjs().format('YYYY-MM-DD');
-
   const playlist = await client.createPlaylist(id, {
-    name: `${date}-${id}-top-tracks`,
+    name: requestBody.data.name,
+    description: requestBody.data.desc,
   });
   if ('error' in playlist) {
     return;
   }
 
-
   await client.updatePlaylistItems(playlist.id, requestBody.data.trackUris);
 
-  res.status(200).json({ playlist: { id: playlist.id, name: playlist.name } });
+  res.status(200).json({
+    playlist: {
+      id: playlist.id,
+      name: playlist.name,
+      desc: playlist.description,
+      url: playlist.external_urls['spotify'],
+    },
+  });
 };
 
 export default handler;
