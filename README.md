@@ -21,6 +21,7 @@ NEXTAUTH_SECRET=
 - `SUPABASE_*` ... [supabase](https://supabase.com)で適当にプロジェクト作る必要がある
   + id, name, tokens, created_at, updated_atのカラムがある。
 - `NEXT_AUTH_SECRET` ... `openssl rand -base64 32` でもしたものを指定する
+- `NEXT_PUBLIC_ORIGIN` ... デプロイ先のホスト名を指定する
 
 pnpmを使っているので、`pnpm install`でパッケージをインストールする。
 

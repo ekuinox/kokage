@@ -5,5 +5,6 @@ declare namespace NodeJS {
     readonly SUPABASE_SERVICE_ROLE_KEY: string;
     readonly SPOTIFY_CLIENT_ID: string;
     readonly SPOTIFY_CLIENT_SECRET: string;
+    readonly NEXT_PUBLIC_ORIGIN: string;
   }
 }
