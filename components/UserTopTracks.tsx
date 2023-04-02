@@ -7,6 +7,7 @@ import {
   Title,
   SegmentedControl,
   Divider,
+  createStyles,
 } from '@mantine/core';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -14,12 +15,21 @@ import { IframedTracks } from './IframedTracks';
 import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
 import { TweetButton } from './TweetButton';
 
+const useStyles = createStyles((theme) => ({
+  username: {
+    [theme.fn.smallerThan('sm')]: {
+      display: 'none',
+    },
+  },
+}));
+
 export interface UserTopTracksProps {
   user: User;
   topTracks: Record<TimeRange, Track[]>;
 }
 
 export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
+  const { classes } = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('short');
 
   return (
@@ -32,7 +42,9 @@ export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
             target="_blank"
             href={user.url}
           />
-          <Title fz="md">{user.name}</Title>
+          <Title fz="md" className={classes.username}>
+            {user.name}
+          </Title>
         </Group>
         <SegmentedControl
           data={[
