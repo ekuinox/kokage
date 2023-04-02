@@ -25,6 +25,7 @@ const getUserProfileResponseType = z.object({
       width: z.number().nullable(),
     })
   ),
+  external_urls: z.record(z.string()),
 });
 
 const imageType = z.object({

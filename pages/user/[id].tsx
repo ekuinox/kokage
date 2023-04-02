@@ -33,6 +33,7 @@ interface User {
   name: string;
   id: string;
   image: string;
+  url: string;
 }
 type TimeRange = 'short' | 'medium' | 'long';
 interface UserPageProps {
@@ -62,6 +63,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   const profileImage = profile.images.sort(
     (a, b) => b.width ?? 0 - (a.width ?? 0)
   )[0].url;
+  const profileUrl = profile.external_urls['spotify'];
 
   const timeRanges = ['short', 'medium', 'long'] as const;
   const [short, medium, long] = await Promise.all(
@@ -86,6 +88,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
         id,
         name: profile.display_name,
         image: profileImage,
+        url: profileUrl,
       },
     },
   };
@@ -171,7 +174,12 @@ export default function UserPage({
           <Stack>
             <Group position="apart" mx={rem(10)}>
               <Group>
-                <Avatar src={user.image} />
+                <Avatar
+                  src={user.image}
+                  component={Link}
+                  target="_blank"
+                  href={user.url}
+                />
                 <Title fz="md">{user.name}</Title>
               </Group>
               <SegmentedControl
