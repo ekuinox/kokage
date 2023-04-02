@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const table = 'users';
+const table = process.env.SUPABASE_USERS_TABLE;
 
 const client = createClient(
   process.env.SUPABASE_URL,
