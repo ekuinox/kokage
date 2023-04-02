@@ -1,16 +1,15 @@
-import Link from 'next/link';
 import Head from 'next/head';
-import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
 import { Header } from '@/components/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
+import { getServerSideUserTopTracksProps } from '@/lib';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]';
+import { Container } from '@mantine/core';
 
-export default function Home() {
-  const { data: session, status } = useSession();
-
-  useEffect(() => {
-    console.log({ session });
-  }, [session]);
-
+export default function Home({
+  userTopTracksProps,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <>
       <Head>
@@ -21,8 +20,33 @@ export default function Home() {
       </Head>
       <main>
         <Header />
-        工事中！！！
+        {userTopTracksProps && (
+          <Container my="sm">
+            <UserTopTracks {...userTopTracksProps} />
+          </Container>
+        )}
       </main>
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<{
+  userTopTracksProps?: UserTopTracksProps;
+}> = async (context) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (session?.user?.id == null) {
+    return {
+      props: {},
+    };
+  }
+
+  const props = await getServerSideUserTopTracksProps(session.user.id);
+  if (props == null) {
+    return { props: {} };
+  }
+  return {
+    props: {
+      userTopTracksProps: props,
+    },
+  };
+};

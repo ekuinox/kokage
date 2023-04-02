@@ -1,33 +1,8 @@
 import Head from 'next/head';
-import { useCallback, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import {
-  ActionIcon,
-  Anchor,
-  Avatar,
-  Container,
-  Divider,
-  Group,
-  rem,
-  SegmentedControl,
-  Stack,
-  Text,
-  Title,
-  Tooltip,
-} from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconDeviceFloppy } from '@tabler/icons-react';
+import { Container } from '@mantine/core';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Header } from '@/components/Header';
-import { getClient } from '@/lib';
-import { Track } from '@/lib/spotify';
-import {
-  CreatePlaylistResponse,
-  type CreatePlaylistRequest,
-} from '../api/create-playlist';
-import dayjs from 'dayjs';
-import { upperFirst } from '@mantine/hooks';
-import Link from 'next/link';
+import { getServerSideUserTopTracksProps } from '@/lib';
 import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
 
 type UserPageProps = UserTopTracksProps;
@@ -43,46 +18,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
     };
   }
 
-  const [, client] = await getClient(id).catch(() => [null, null]);
-  if (client == null) {
-    return {
-      notFound: true,
-    };
+  const props = await getServerSideUserTopTracksProps(id);
+  if (props == null) {
+    return { notFound: true };
   }
-
-  const profile = await client.getUserProfile(id);
-  const profileImage = profile.images.sort(
-    (a, b) => b.width ?? 0 - (a.width ?? 0)
-  )[0].url;
-  const profileUrl = profile.external_urls['spotify'];
-
-  const timeRanges = ['short', 'medium', 'long'] as const;
-  const [short, medium, long] = await Promise.all(
-    timeRanges.map((timeRange) =>
-      client.getTopTracks({ limit: 5, offset: 0, timeRange }).then((r) => {
-        if ('error' in r) {
-          throw new Error(`Error with ${timeRange}`);
-        }
-        return r.items;
-      })
-    )
-  );
-
-  return {
-    props: {
-      topTracks: {
-        short,
-        medium,
-        long,
-      },
-      user: {
-        id,
-        name: profile.display_name,
-        image: profileImage,
-        url: profileUrl,
-      },
-    },
-  };
+  return { props };
 };
 
 export default function UserPage({
