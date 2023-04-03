@@ -68,7 +68,7 @@ export const PlaylistCreateButton = ({
   }, [tracks]);
 
   return (
-    <Tooltip label="プレイリストを作成する">
+    <Tooltip label="プレイリスト作成">
       <ActionIcon
         onClick={create}
         disabled={disabled}
