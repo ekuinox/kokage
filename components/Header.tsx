@@ -18,10 +18,9 @@ import {
   IconChevronDown,
   IconLogin,
   IconUser,
-  IconMusic,
   IconBrandGithub,
 } from '@tabler/icons-react';
-import { useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 const useStyles = createStyles((theme) => ({
@@ -126,12 +125,7 @@ export function Header() {
                   <Menu.Item
                     component={Link}
                     href={`/user/${user?.id}`}
-                    icon={
-                      <IconUser
-                        size="0.9rem"
-                        stroke={1.5}
-                      />
-                    }
+                    icon={<IconUser size="0.9rem" stroke={1.5} />}
                   >
                     Top tracks
                   </Menu.Item>
@@ -139,8 +133,8 @@ export function Header() {
                 <Menu.Label>Settings</Menu.Label>
                 {status === 'authenticated' && (
                   <Menu.Item
-                    component={Link}
-                    href="/api/auth/signout"
+                    component="button"
+                    onClick={() => signOut()}
                     icon={<IconLogout size="0.9rem" stroke={1.5} />}
                   >
                     Sign out
@@ -148,8 +142,8 @@ export function Header() {
                 )}
                 {status === 'unauthenticated' && (
                   <Menu.Item
-                    component={Link}
-                    href="/api/auth/signin"
+                    component="button"
+                    onClick={() => signIn('spotify')}
                     icon={<IconLogin size="0.9rem" stroke={1.5} />}
                   >
                     Sign in

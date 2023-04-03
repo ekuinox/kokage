@@ -1,17 +1,34 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import { getServerSession } from 'next-auth';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
-import { Anchor, Card, Container, Stack, Text, Title } from '@mantine/core';
+import {
+  Card,
+  Container,
+  Stack,
+  Text,
+  Title,
+  UnstyledButton,
+  createStyles,
+} from '@mantine/core';
 import { Head } from '@/components/Head';
 import { Header } from '@/components/Header';
 import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
 import { getServerSideUserTopTracksProps } from '@/lib';
 import { authOptions } from './api/auth/[...nextauth]';
+import { signIn } from 'next-auth/react';
+
+const useStyles = createStyles(() => ({
+  loginLink: {
+    textDecorationColor: 'blue',
+    textDecorationLine: 'underline',
+  },
+}));
 
 export default function Home({
   userTopTracksProps,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { classes } = useStyles();
+
   return (
     <>
       <Head />
@@ -25,9 +42,12 @@ export default function Home({
               <Title fz="lg">よく聴く曲をシェアするやつ</Title>
               <Text>
                 Spotifyの連携を使ってよく聴いた曲をリストで出すやつです。
-                <Anchor component={Link} href="/api/auth/signin">
+                <UnstyledButton
+                  onClick={() => signIn('spotify')}
+                  className={classes.loginLink}
+                >
                   ログイン
-                </Anchor>
+                </UnstyledButton>
                 してシェアしてみてください！
               </Text>
               <Card shadow="sm" padding="xs" mx="xl" radius="md" withBorder>
