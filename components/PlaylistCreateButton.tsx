@@ -65,7 +65,7 @@ export const PlaylistCreateButton = ({
         });
       }
     });
-  }, [tracks]);
+  }, [tracks, timeRange, user.name]);
 
   return (
     <Tooltip label="プレイリスト作成">
