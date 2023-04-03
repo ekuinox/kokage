@@ -38,7 +38,7 @@ export const UserTopTracks = ({
 
   return (
     <Stack>
-      <Group position="apart">
+      <Group position="apart" mx="xs" spacing={0}>
         <Group>
           <Avatar
             src={user.image}
