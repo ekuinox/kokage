@@ -2,10 +2,8 @@ import { Track } from '@/lib/spotify';
 import {
   Stack,
   Group,
-  rem,
   Avatar,
   Title,
-  SegmentedControl,
   Divider,
   createStyles,
 } from '@mantine/core';
@@ -14,6 +12,7 @@ import { useState } from 'react';
 import { IframedTracks } from './IframedTracks';
 import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
 import { TweetButton } from './TweetButton';
+import { TimeRangeControl } from './TimeRangeControl';
 
 const useStyles = createStyles((theme) => ({
   username: {
@@ -34,7 +33,7 @@ export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
 
   return (
     <Stack>
-      <Group position="apart" mx={rem(10)}>
+      <Group position="apart">
         <Group>
           <Avatar
             src={user.image}
@@ -46,15 +45,7 @@ export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
             {user.name}
           </Title>
         </Group>
-        <SegmentedControl
-          data={[
-            { label: 'Short', value: 'short' },
-            { label: 'Medium', value: 'medium' },
-            { label: 'Long', value: 'long' },
-          ]}
-          value={timeRange}
-          onChange={(value) => setTimeRange(value as typeof timeRange)}
-        />
+        <TimeRangeControl value={timeRange} onChange={setTimeRange} />
         <Group>
           <TweetButton id={user.id} />
           <PlaylistCreateButton
