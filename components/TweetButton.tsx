@@ -20,6 +20,9 @@ export const TweetButton = ({ id }: TweetButtonProps) => {
         component={Link}
         href={createComposeUrl(id)}
         target="_blank"
+        variant="light"
+        color="cyan"
+        size={32}
         disabled={process.env.NEXT_PUBLIC_DISABLE_TWEET_BUTTON === '1'}
       >
         <IconBrandTwitterFilled />
