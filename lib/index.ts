@@ -56,6 +56,18 @@ export const getClient = async (
   return [name, spotify];
 };
 
+const getLimit = (defaultLimit = 5) => {
+  const envText = process.env.TOP_TRACKS_LIMIT;
+  if (envText == null) {
+    return defaultLimit;
+  }
+  const envValue = parseInt(envText);
+  if (isNaN(envValue)) {
+    return defaultLimit;
+  }
+  return envValue;
+};
+
 export const getServerSideUserTopTracksProps = async (
   id: string
 ): Promise<Omit<UserTopTracksProps, 'isSelf'> | null> => {
@@ -72,12 +84,14 @@ export const getServerSideUserTopTracksProps = async (
   const timeRanges = ['short', 'medium', 'long'] as const;
   const [short, medium, long] = await Promise.all(
     timeRanges.map((timeRange) =>
-      client.getTopTracks({ limit: 5, offset: 0, timeRange }).then((r) => {
-        if ('error' in r) {
-          throw new Error(`Error with ${timeRange}`);
-        }
-        return r.items;
-      })
+      client
+        .getTopTracks({ limit: getLimit(), offset: 0, timeRange })
+        .then((r) => {
+          if ('error' in r) {
+            throw new Error(`Error with ${timeRange}`);
+          }
+          return r.items;
+        })
     )
   );
 
