@@ -4,12 +4,16 @@ import { Head } from '@/components/Head';
 import { Header } from '@/components/Header';
 import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
 import { getServerSideUserTopTracksProps } from '@/lib';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]';
 
 type UserPageProps = UserTopTracksProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   context
 ) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+
   const id = context.params?.id;
 
   if (typeof id !== 'string') {
@@ -22,12 +26,13 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
   if (props == null) {
     return { notFound: true };
   }
-  return { props };
+  return { props: { ...props, isSelf: session?.user?.id === id } };
 };
 
 export default function UserPage({
   user,
   topTracks,
+  isSelf,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <>
@@ -35,7 +40,7 @@ export default function UserPage({
       <main>
         <Header />
         <Container my="sm">
-          <UserTopTracks user={user} topTracks={topTracks} />
+          <UserTopTracks user={user} topTracks={topTracks} isSelf={isSelf} />
         </Container>
       </main>
     </>

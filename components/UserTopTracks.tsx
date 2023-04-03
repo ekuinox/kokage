@@ -24,10 +24,15 @@ const useStyles = createStyles((theme) => ({
 
 export interface UserTopTracksProps {
   user: User;
+  isSelf: boolean;
   topTracks: Record<TimeRange, Track[]>;
 }
 
-export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
+export const UserTopTracks = ({
+  user,
+  topTracks,
+  isSelf,
+}: UserTopTracksProps) => {
   const { classes } = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('short');
 
@@ -47,7 +52,7 @@ export const UserTopTracks = ({ user, topTracks }: UserTopTracksProps) => {
         </Group>
         <TimeRangeControl value={timeRange} onChange={setTimeRange} />
         <Group>
-          <TweetButton id={user.id} />
+          {isSelf && <TweetButton id={user.id} />}
           <PlaylistCreateButton
             tracks={topTracks[timeRange]}
             timeRange={timeRange}

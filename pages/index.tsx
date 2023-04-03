@@ -65,7 +65,7 @@ export const getServerSideProps: GetServerSideProps<{
   }
   return {
     props: {
-      userTopTracksProps: props,
+      userTopTracksProps: { ...props, isSelf: true },
     },
   };
 };

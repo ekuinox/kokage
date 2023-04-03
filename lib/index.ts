@@ -58,7 +58,7 @@ export const getClient = async (
 
 export const getServerSideUserTopTracksProps = async (
   id: string
-): Promise<UserTopTracksProps | null> => {
+): Promise<Omit<UserTopTracksProps, 'isSelf'> | null> => {
   const [, client] = await getClient(id).catch(() => [null, null]);
   if (client == null) {
     return null;
@@ -95,56 +95,3 @@ export const getServerSideUserTopTracksProps = async (
     },
   };
 };
-
-export const createGetServerSidePropsFunc =
-  (id_?: string): GetServerSideProps<UserTopTracksProps> =>
-  async (context) => {
-    const id = id_ ?? context.params?.id;
-
-    if (typeof id !== 'string') {
-      return {
-        notFound: true,
-      };
-    }
-
-    const [, client] = await getClient(id).catch(() => [null, null]);
-    if (client == null) {
-      return {
-        notFound: true,
-      };
-    }
-
-    const profile = await client.getUserProfile(id);
-    const profileImage = profile.images.sort(
-      (a, b) => b.width ?? 0 - (a.width ?? 0)
-    )[0].url;
-    const profileUrl = profile.external_urls['spotify'];
-
-    const timeRanges = ['short', 'medium', 'long'] as const;
-    const [short, medium, long] = await Promise.all(
-      timeRanges.map((timeRange) =>
-        client.getTopTracks({ limit: 5, offset: 0, timeRange }).then((r) => {
-          if ('error' in r) {
-            throw new Error(`Error with ${timeRange}`);
-          }
-          return r.items;
-        })
-      )
-    );
-
-    return {
-      props: {
-        topTracks: {
-          short,
-          medium,
-          long,
-        },
-        user: {
-          id,
-          name: profile.display_name,
-          image: profileImage,
-          url: profileUrl,
-        },
-      },
-    };
-  };
