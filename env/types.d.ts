@@ -7,5 +7,6 @@ declare namespace NodeJS {
     readonly SPOTIFY_CLIENT_ID: string;
     readonly SPOTIFY_CLIENT_SECRET: string;
     readonly NEXT_PUBLIC_ORIGIN: string;
+    readonly NEXT_PUBLIC_DISABLE_TWEET_BUTTON?: string;
   }
 }
