@@ -8,7 +8,7 @@ import {
   SegmentedControl,
   Text,
 } from '@mantine/core';
-import { IconQuestionMark } from '@tabler/icons-react';
+import { IconHelpCircle } from '@tabler/icons-react';
 import { TimeRange } from './PlaylistCreateButton';
 
 export interface TimeRangeControlProps {
@@ -23,17 +23,9 @@ export const TimeRangeControl = ({
   return (
     <Indicator
       label={
-        <ActionIcon
-          component={Popover}
-          size={24}
-          style={{
-            borderStyle: 'solid',
-            borderColor: 'black',
-            borderRadius: '20px',
-          }}
-        >
+        <ActionIcon component={Popover}>
           <Popover.Target>
-            <IconQuestionMark />
+            <IconHelpCircle />
           </Popover.Target>
           <Popover.Dropdown>
             <Text c="black" fz="md">
