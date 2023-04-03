@@ -127,14 +127,13 @@ export function Header() {
                     component={Link}
                     href={`/user/${user?.id}`}
                     icon={
-                      <IconMusic
+                      <IconUser
                         size="0.9rem"
-                        color={theme.colors.red[6]}
                         stroke={1.5}
                       />
                     }
                   >
-                    Your Top tracks
+                    Top tracks
                   </Menu.Item>
                 )}
                 <Menu.Label>Settings</Menu.Label>
