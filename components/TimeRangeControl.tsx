@@ -29,14 +29,14 @@ export const TimeRangeControl = ({
           </Popover.Target>
           <Popover.Dropdown>
             <Text c="black" fz="md">
-              <Anchor
+              集計の期間を選択します
+              <Anchor fz="sm"
                 mx={rem(5)}
                 href="https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks"
                 target="_blank"
               >
-                Get User's Top Items
+                [Get User's Top Items]
               </Anchor>
-              の<Code>time_range</Code>にもとづきます
             </Text>
           </Popover.Dropdown>
         </ActionIcon>
