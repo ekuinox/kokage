@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useState } from 'react';
 import {
   createStyles,
@@ -18,10 +19,9 @@ import {
   IconChevronDown,
   IconLogin,
   IconUser,
-  IconBrandGithub,
+  IconExternalLink,
 } from '@tabler/icons-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -53,15 +53,10 @@ const useStyles = createStyles((theme) => ({
     backgroundColor:
       theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.white,
   },
-  source: {
-    '&:hover': {
-      transform: 'scaleX(-1)',
-    },
-  },
 }));
 
 export function Header() {
-  const { classes, theme, cx } = useStyles();
+  const { classes, cx } = useStyles();
   const [opened, { toggle }] = useDisclosure(false);
   const [userMenuOpened, setUserMenuOpened] = useState(false);
 
@@ -83,21 +78,12 @@ export function Header() {
           />
           <Group>
             <Menu
-              width={260}
               position="bottom-end"
               transitionProps={{ transition: 'pop-top-right' }}
               onClose={() => setUserMenuOpened(false)}
               onOpen={() => setUserMenuOpened(true)}
               withinPortal
             >
-              <ActionIcon
-                component={Link}
-                target="_blank"
-                className={classes.source}
-                href="https://github.com/ekuinox/kokage"
-              >
-                <IconBrandGithub />
-              </ActionIcon>
               <Menu.Target>
                 <UnstyledButton
                   className={cx(classes.user, {
@@ -125,7 +111,7 @@ export function Header() {
                   <Menu.Item
                     component={Link}
                     href={`/user/${user?.id}`}
-                    icon={<IconUser size="0.9rem" stroke={1.5} />}
+                    icon={<IconUser stroke={1.5} />}
                   >
                     Top tracks
                   </Menu.Item>
@@ -135,20 +121,41 @@ export function Header() {
                   <Menu.Item
                     component="button"
                     onClick={() => signOut()}
-                    icon={<IconLogout size="0.9rem" stroke={1.5} />}
+                    icon={<IconLogout stroke={1.5} />}
                   >
-                    Sign out
+                    sign out
                   </Menu.Item>
                 )}
                 {status === 'unauthenticated' && (
                   <Menu.Item
                     component="button"
                     onClick={() => signIn('spotify')}
-                    icon={<IconLogin size="0.9rem" stroke={1.5} />}
+                    icon={<IconLogin stroke={1.5} />}
                   >
-                    Sign in
+                    sign in
                   </Menu.Item>
                 )}
+                <Menu.Label>Kokage</Menu.Label>
+                <Menu.Item
+                  component={Link}
+                  target="_blank"
+                  href="https://github.com/ekuinox/kokage"
+                >
+                  <Group spacing="xs">
+                    <Text fz="sm">source code at github</Text>
+                    <IconExternalLink stroke={1.5} size="1rem" />
+                  </Group>
+                </Menu.Item>
+                <Menu.Item
+                  component={Link}
+                  target="_blank"
+                  href="https://twitter.com/remokusu"
+                >
+                  <Group spacing="xs">
+                    <Text fz="sm">contact on twitter</Text>
+                    <IconExternalLink stroke={1.5} size="1rem" />
+                  </Group>
+                </Menu.Item>
               </Menu.Dropdown>
             </Menu>
           </Group>
