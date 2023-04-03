@@ -1,10 +1,10 @@
-import { Anchor, Tooltip, ActionIcon, Text } from '@mantine/core';
-import { upperFirst } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
-import { IconDeviceFloppy } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useCallback } from 'react';
+import { upperFirst } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import { IconPlaylistAdd } from '@tabler/icons-react';
+import { Anchor, Tooltip, ActionIcon, Text } from '@mantine/core';
 import {
   CreatePlaylistRequest,
   CreatePlaylistResponse,
@@ -71,11 +71,12 @@ export const PlaylistCreateButton = ({
     <Tooltip label="プレイリストを作成する">
       <ActionIcon
         onClick={create}
-        variant="filled"
-        color="teal"
         disabled={disabled}
+        variant="light"
+        color="teal"
+        size={32}
       >
-        <IconDeviceFloppy />
+        <IconPlaylistAdd />
       </ActionIcon>
     </Tooltip>
   );
