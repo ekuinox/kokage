@@ -50,9 +50,9 @@ export const TimeRangeControl = ({
     >
       <SegmentedControl
         data={[
-          { label: '4 weeks', value: 'short' },
-          { label: '6 months', value: 'medium' },
-          { label: 'All', value: 'long' },
+          { label: '1ヵ月', value: 'short' },
+          { label: '半年', value: 'medium' },
+          { label: '全て', value: 'long' },
         ]}
         value={value}
         onChange={(value) => onChange(value as TimeRange)}
