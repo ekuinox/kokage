@@ -46,7 +46,7 @@ export default function UserPage({
         ogImg={{
           url: `${baseUrl}/api/user/${user.id}/og`,
           width: 1200,
-          height: 600,
+          height: 627,
         }}
       />
       <main>
