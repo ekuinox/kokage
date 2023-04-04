@@ -8,8 +8,8 @@ import {
   createStyles,
 } from '@mantine/core';
 import Link from 'next/link';
-import { useState } from 'react';
-import { IframedTracks } from './IframedTracks';
+import { useMemo, useState } from 'react';
+import { IframedTrack } from './IframedTrack';
 import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
 import { TweetButton } from './TweetButton';
 import { TimeRangeControl } from './TimeRangeControl';
@@ -36,6 +36,17 @@ export const UserTopTracks = ({
   const { classes } = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('short');
 
+  const tracks = useMemo(
+    () => (
+      <>
+        {topTracks[timeRange].map((track) => (
+          <IframedTrack track={track} key={track.id} />
+        ))}
+      </>
+    ),
+    [topTracks, timeRange]
+  );
+
   return (
     <Stack>
       <Group position="apart" mx="xs" spacing={0}>
@@ -61,7 +72,7 @@ export const UserTopTracks = ({
         </Group>
       </Group>
       <Divider />
-      <IframedTracks tracks={topTracks[timeRange]} />
+      {tracks}
     </Stack>
   );
 };
