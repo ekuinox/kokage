@@ -73,7 +73,7 @@ const handler: NextApiHandler = async (req) => {
     ),
     {
       width: 1200,
-      height: 600,
+      height: 627,
     }
   );
 };
