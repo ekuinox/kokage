@@ -25,6 +25,7 @@ export const Head = ({ ogUrl, ogImg }: HeadProps) => {
           <meta property="og:image" content={ogImg.url} />
           <meta property="og:image:width" content={ogImg.width.toString()} />
           <meta property="og:image:height" content={ogImg.height.toString()} />
+          <meta property="twitter:card" content="summary_large_image" />
         </>
       )}
       <link rel="icon" href="/favicon.ico" />
