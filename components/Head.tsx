@@ -1,19 +1,32 @@
 import NextHead from 'next/head';
 
-export const Head = () => {
+export interface HeadProps {
+  ogUrl?: string;
+  ogImg?: {
+    width: number;
+    height: number;
+    url: string;
+  };
+}
+
+export const Head = ({ ogUrl, ogImg }: HeadProps) => {
   return (
     <NextHead>
       <title>よく聴く曲をシェアするやつ</title>
       <meta name="description" content="よく聴く曲をシェアするやつ" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <meta property="og:url" content={'https://kokage.ekuinox.dev'} />
+      {ogUrl && <meta property="og:url" content={ogUrl} />}
       <meta property="og:title" content={'よく聴く曲をシェアするやつ'} />
       <meta property="og:site_name" content={'よく聴く曲をシェアするやつ'} />
       <meta property="og:description" content={'よく聴く曲をシェアするやつ'} />
       <meta property="og:type" content="website" />
-      <meta property="og:image" content={'https://github.com/ekuinox.png'} />
-      <meta property="og:image:width" content={'400'} />
-      <meta property="og:image:height" content={'400'} />
+      {ogImg && (
+        <>
+          <meta property="og:image" content={ogImg.url} />
+          <meta property="og:image:width" content={ogImg.width.toString()} />
+          <meta property="og:image:height" content={ogImg.height.toString()} />
+        </>
+      )}
       <link rel="icon" href="/favicon.ico" />
     </NextHead>
   );
