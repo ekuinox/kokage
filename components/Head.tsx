@@ -13,12 +13,12 @@ export const Head = ({ ogUrl, ogImg }: HeadProps) => {
   return (
     <NextHead>
       <title>よく聴く曲をシェアするやつ</title>
-      <meta name="description" content="よく聴く曲をシェアするやつ" />
+      <meta name="description" content="Spotifyでよく聴く曲をシェアするやつ" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       {ogUrl && <meta property="og:url" content={ogUrl} />}
       <meta property="og:title" content={'よく聴く曲をシェアするやつ'} />
-      <meta property="og:site_name" content={'よく聴く曲をシェアするやつ'} />
-      <meta property="og:description" content={'よく聴く曲をシェアするやつ'} />
+      <meta property="og:site_name" content={'kokage'} />
+      <meta property="og:description" content={'Spotifyでよく聴く曲をシェアするやつ'} />
       <meta property="og:type" content="website" />
       {ogImg && (
         <>
