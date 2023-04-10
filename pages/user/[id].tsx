@@ -3,7 +3,6 @@ import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { Head } from '@/components/Head';
 import { Header } from '@/components/Header';
 import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
-import { getServerSideUserTopTracksProps } from '@/lib';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 
@@ -26,16 +25,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (
     };
   }
 
-  const props = await getServerSideUserTopTracksProps(id);
-  if (props == null) {
-    return { notFound: true };
-  }
-  return { props: { ...props, isSelf: session?.user?.id === id, baseUrl } };
+  return { props: { user: { id }, isSelf: session?.user?.id === id, baseUrl } };
 };
 
 export default function UserPage({
   user,
-  topTracks,
   isSelf,
   baseUrl,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
@@ -52,7 +46,7 @@ export default function UserPage({
       <main>
         <Header />
         <Container my="sm">
-          <UserTopTracks user={user} topTracks={topTracks} isSelf={isSelf} />
+          <UserTopTracks user={user} isSelf={isSelf} />
         </Container>
       </main>
     </>

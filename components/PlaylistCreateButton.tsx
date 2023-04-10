@@ -20,14 +20,14 @@ export interface User {
 export type TimeRange = 'short' | 'medium' | 'long';
 
 export interface PlaylistCreateButtonProps {
-  user: Omit<User, 'image'>;
+  username: string;
   tracks: Track[];
   timeRange: TimeRange;
   disabled?: boolean;
 }
 
 export const PlaylistCreateButton = ({
-  user,
+  username,
   tracks,
   timeRange,
   disabled,
@@ -40,8 +40,8 @@ export const PlaylistCreateButton = ({
 
     const request: CreatePlaylistRequest = {
       trackUris: tracks.map((track) => track.uri),
-      name: `top-tracks-${user.name}-${timeRange}-${date}`,
-      desc: `${user.name}'s Top Tracks of ${upperFirst(
+      name: `top-tracks-${username}-${timeRange}-${date}`,
+      desc: `${username}'s Top Tracks of ${upperFirst(
         timeRange
       )} Time Range at ${date}`,
     };
@@ -65,7 +65,7 @@ export const PlaylistCreateButton = ({
         });
       }
     });
-  }, [tracks, timeRange, user.name]);
+  }, [tracks, timeRange, username]);
 
   return (
     <Tooltip label="プレイリスト作成">

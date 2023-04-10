@@ -13,7 +13,6 @@ import {
 import { Head } from '@/components/Head';
 import { Header } from '@/components/Header';
 import { UserTopTracks, UserTopTracksProps } from '@/components/UserTopTracks';
-import { getServerSideUserTopTracksProps } from '@/lib';
 import { authOptions } from './api/auth/[...nextauth]';
 import { signIn } from 'next-auth/react';
 
@@ -79,13 +78,9 @@ export const getServerSideProps: GetServerSideProps<{
     };
   }
 
-  const props = await getServerSideUserTopTracksProps(session.user.id);
-  if (props == null) {
-    return { props: {} };
-  }
   return {
     props: {
-      userTopTracksProps: { ...props, isSelf: true },
+      userTopTracksProps: { user: { id: session.user.id }, isSelf: true },
     },
   };
 };

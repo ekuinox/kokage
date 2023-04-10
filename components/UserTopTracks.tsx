@@ -1,4 +1,3 @@
-import { Track } from '@/lib/spotify';
 import {
   Stack,
   Group,
@@ -8,11 +7,14 @@ import {
   createStyles,
 } from '@mantine/core';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import useSWR from 'swr';
+import { useState } from 'react';
 import { IframedTrack } from './IframedTrack';
 import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
 import { TweetButton } from './TweetButton';
 import { TimeRangeControl } from './TimeRangeControl';
+import { Track } from '@/lib/spotify';
+import { GetUserProfileResponse } from '@/pages/api/user/[id]';
 
 const useStyles = createStyles((theme) => ({
   username: {
@@ -22,57 +24,77 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+const getUser = async (id: string): Promise<GetUserProfileResponse> => {
+  const resp = await fetch(`/api/user/${id}`);
+  if (!resp.ok) {
+    throw new Error(await resp.text());
+  }
+  return resp.json();
+};
+
+const getTopTracks = async (
+  id: string,
+  timeRange: 'short' | 'medium' | 'long'
+): Promise<Track[]> => {
+  const resp = await fetch(`/api/user/${id}/top/tracks?timeRange=${timeRange}`);
+  if (!resp.ok) {
+    throw new Error(await resp.text());
+  }
+  const json = await resp.json();
+  return json.tracks;
+};
+
 export interface UserTopTracksProps {
-  user: User;
+  user: Pick<User, 'id'>;
   isSelf: boolean;
-  topTracks: Record<TimeRange, Track[]>;
 }
 
-export const UserTopTracks = ({
-  user,
-  topTracks,
-  isSelf,
-}: UserTopTracksProps) => {
+export const UserTopTracks = ({ user: { id }, isSelf }: UserTopTracksProps) => {
   const { classes } = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('short');
-
-  const tracks = useMemo(
-    () => (
-      <>
-        {topTracks[timeRange].map((track) => (
-          <IframedTrack track={track} key={track.id} />
-        ))}
-      </>
-    ),
-    [topTracks, timeRange]
+  const { data: user } = useSWR(`/api/user/${id}`, () => getUser(id));
+  const { data: topTracks } = useSWR(
+    `/api/user/${id}/top/tracks?timeRange=${timeRange}`,
+    () => getTopTracks(id, timeRange)
   );
 
   return (
     <Stack>
       <Group position="apart" mx="xs" spacing={0}>
         <Group>
-          <Avatar
-            src={user.image}
-            component={Link}
-            target="_blank"
-            href={user.url}
-          />
-          <Title fz="md" className={classes.username}>
-            {user.name}
-          </Title>
+          {user && (
+            <>
+              <Avatar
+                src={user.imageUrl}
+                component={Link}
+                target="_blank"
+                href={user.url}
+              />
+              <Title fz="md" className={classes.username}>
+                {user.name}
+              </Title>
+            </>
+          )}
         </Group>
         <TimeRangeControl value={timeRange} onChange={setTimeRange} />
         <Group>
-          {isSelf && <TweetButton id={user.id} />}
-          <PlaylistCreateButton
-            tracks={topTracks[timeRange]}
-            timeRange={timeRange}
-            user={user}
-          />
+          {isSelf && <TweetButton id={id} />}
+          {user && topTracks && (
+            <PlaylistCreateButton
+              tracks={topTracks ?? []}
+              timeRange={timeRange}
+              username={user?.name}
+            />
+          )}
         </Group>
       </Group>
       <Divider />
-      {tracks}
+      <>
+        {topTracks &&
+          topTracks.map((track) => (
+            <IframedTrack track={track} key={track.id} />
+          ))}
+      </>
     </Stack>
   );
 };
