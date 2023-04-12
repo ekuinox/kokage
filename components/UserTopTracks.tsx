@@ -9,12 +9,18 @@ import {
 import Link from 'next/link';
 import useSWR from 'swr';
 import { useState } from 'react';
-import { IframedTrack } from './IframedTrack';
-import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
-import { TweetButton } from './TweetButton';
-import { TimeRangeControl } from './TimeRangeControl';
 import { Track } from '@/lib/spotify';
 import { GetUserProfileResponse } from '@/pages/api/user/[id]';
+import { TweetButton } from './TweetButton';
+import { IframeTrackView } from './IframedTrackView';
+import { TimeRangeControl } from './TimeRangeControl';
+import { TrackView as DefaultTrackView } from './TrackView';
+import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
+
+const TrackView =
+  process.env.NEXT_PUBLIC_IFRAME_TRACK_VIEW === '1'
+    ? IframeTrackView
+    : DefaultTrackView;
 
 const useStyles = createStyles((theme) => ({
   username: {
@@ -91,9 +97,7 @@ export const UserTopTracks = ({ user: { id }, isSelf }: UserTopTracksProps) => {
       <Divider />
       <>
         {topTracks &&
-          topTracks.map((track) => (
-            <IframedTrack track={track} key={track.id} />
-          ))}
+          topTracks.map((track) => <TrackView track={track} key={track.id} />)}
       </>
     </Stack>
   );

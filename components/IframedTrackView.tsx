@@ -1,10 +1,10 @@
 import { Track } from '@/lib/spotify';
 
-export interface IframedTrackProps {
+export interface IframeTrackViewProps {
   track: Track;
 }
 
-export const IframedTrack = ({ track }: IframedTrackProps) => {
+export const IframeTrackView = ({ track }: IframeTrackViewProps) => {
   return (
     <iframe
       key={track.id}
