@@ -60,12 +60,6 @@ async function refreshAccessToken(token: JWT) {
 
 const scopes = [
   'user-top-read',
-  'user-read-private',
-  'user-read-email',
-  'user-read-currently-playing',
-  'user-read-recently-played',
-  'playlist-read-private',
-  'playlist-read-collaborative',
   'playlist-modify-private',
   'playlist-modify-public',
 ];
