@@ -18,9 +18,9 @@ import { TrackView as DefaultTrackView } from './TrackView';
 import { PlaylistCreateButton, TimeRange, User } from './PlaylistCreateButton';
 
 const TrackView =
-  process.env.NEXT_PUBLIC_IFRAME_TRACK_VIEW === '1'
-    ? IframeTrackView
-    : DefaultTrackView;
+  process.env.NEXT_PUBLIC_WITHOUT_IFRAME_TRACK_VIEW === '1'
+    ? DefaultTrackView
+    : IframeTrackView;
 
 const useStyles = createStyles((theme) => ({
   username: {

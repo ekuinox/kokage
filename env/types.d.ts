@@ -9,6 +9,6 @@ declare namespace NodeJS {
     readonly TOP_TRACKS_LIMIT?: string;
     readonly NEXT_PUBLIC_ORIGIN: string;
     readonly NEXT_PUBLIC_DISABLE_TWEET_BUTTON?: string;
-    readonly NEXT_PUBLIC_IFRAME_TRACK_VIEW?: string;
+    readonly NEXT_PUBLIC_WITHOUT_IFRAME_TRACK_VIEW?: string;
   }
 }
