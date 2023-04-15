@@ -6,9 +6,10 @@ import {
   Divider,
   createStyles,
 } from '@mantine/core';
-import Link from 'next/link';
 import useSWR from 'swr';
+import Link from 'next/link';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Track } from '@/lib/spotify';
 import { GetUserProfileResponse } from '@/pages/api/user/[id]';
 import { TweetButton } from './TweetButton';
@@ -57,6 +58,7 @@ export interface UserTopTracksProps {
 
 export const UserTopTracks = ({ user: { id }, isSelf }: UserTopTracksProps) => {
   const { classes } = useStyles();
+  const { status } = useSession();
   const [timeRange, setTimeRange] = useState<TimeRange>('short');
   const { data: user } = useSWR(`/api/user/${id}`, () => getUser(id));
   const { data: topTracks } = useSWR(
@@ -85,11 +87,11 @@ export const UserTopTracks = ({ user: { id }, isSelf }: UserTopTracksProps) => {
         <TimeRangeControl value={timeRange} onChange={setTimeRange} />
         <Group>
           {isSelf && <TweetButton id={id} />}
-          {user && topTracks && (
+          {status === 'authenticated' && user && topTracks && (
             <PlaylistCreateButton
               tracks={topTracks ?? []}
               timeRange={timeRange}
-              username={user?.name}
+              username={user.name}
             />
           )}
         </Group>
