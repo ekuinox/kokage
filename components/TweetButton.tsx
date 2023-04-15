@@ -8,7 +8,8 @@ export interface TweetButtonProps {
 
 const createComposeUrl = (id: string) => {
   const url = new URL('https://twitter.com/intent/tweet');
-  const text = `わたしのよく聴いた曲をシェアします! ${process.env.NEXT_PUBLIC_ORIGIN}/user/${id}`;
+  const userPage = encodeURI(`${process.env.NEXT_PUBLIC_ORIGIN}/user/${id}`);
+  const text = ['わたしのよく聴いた曲をシェアします!', userPage].join('\n');
   url.searchParams.append('text', text);
   return url.toString();
 };

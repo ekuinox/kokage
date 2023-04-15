@@ -39,7 +39,7 @@ const handler: NextApiHandler = async (req, res) => {
       id,
       name,
       url: urls['spotify'],
-      imageUrl: images[0].url,
+      imageUrl: images[0]?.url ?? null,
     });
   } catch (e) {
     console.error({ e });
